@@ -13,12 +13,14 @@ Sync your Garmin fitness data to Notion databases. Fully automated via GitHub Ac
 This fork adds the following on top of the original:
 
 ### New Database: Fitness Summary
+
 - **Training Readiness** — Garmin's daily readiness score (0–100)
 - **Training Level** — PRIME / HIGH / MODERATE / LOW / POOR classification
 - **LT Heart Rate** — Lactate threshold heart rate
 - **Race Predictions** — Estimated 5K, 10K, Half Marathon, and Marathon times
 
 ### Enhanced Sleep Tracking
+
 - **Stress data** — `Stress Avg` and `Stress Max` per night (uses `avgStressLevel` from Garmin API — note: `overallStressLevel` returns NULL)
 - **HRV data** — `HRV Avg` (heart rate variability) and `HRV Status` (BALANCED / LOW / UNBALANCED / POOR)
 - **SpO2** — Blood oxygen saturation percentage
@@ -31,13 +33,16 @@ This fork adds the following on top of the original:
   - Awake Penalty (10%): 0 min = 100, 30+ min = 0
 
 ### Enhanced Activity Tracking
+
 - **VO2 Max** — Per-activity VO2 Max reading (when reported by Garmin)
 - **VO2 Type** — Formula property that categorizes as "Running" or "Cycling" for split trend analysis
 - **Hour Block** — 2-hour time window (e.g. `16:00-18:00`) for workout timing analysis
 - **Day of Week** — For weekly pattern analysis
 
 ### Notion Template with 18+ Chart Views
+
 The Notion AI prompt creates a complete dashboard with:
+
 - **Trend lines** — Sleep Score, Garmin Score, Stress, HRV, Resting HR, VO2 Max (split by Running/Cycling), Training Readiness
 - **Distribution donuts** — Activity type, Calories by sport, Distance by sport, Workout time of day, HRV Status, Training Level
 - **Correlation charts** — Sleep vs Stress, HRV by Stress Level, Avg HR by Activity Type, Calories by Day of Week
@@ -45,9 +50,11 @@ The Notion AI prompt creates a complete dashboard with:
 - All charts include descriptive captions
 
 ### Bug Fixes
+
 - Fixed Garmin stress API key: `avgStressLevel` (not `overallStressLevel`, which returns NULL)
 
 ### Performance
+
 - **Configurable summary window** — by default the Activity Summary sync only recomputes the current and previous month plus the current year, instead of every month/year bucket since you started tracking. Cuts a typical sync from ~5 minutes to ~30 seconds. Tune via `SUMMARY_WINDOW_MONTHS` (default `2`, set to `9999` for a full rebuild).
 
 ## Features
@@ -73,6 +80,7 @@ Click **Fork** on GitHub to create your own copy.
 ### Step 2: Set up your Notion template
 
 **Option A — Notion AI (recommended):**
+
 1. Open a new Notion page
 2. Copy the full contents of [`docs/notion-ai-prompt.txt`](docs/notion-ai-prompt.txt)
 3. Paste it into Notion AI — it will create the complete template with all 6 databases, 18+ chart views, and board/calendar views
@@ -110,7 +118,7 @@ Go to **Settings → Secrets and variables → Actions → Variables** and add:
 | `GARMIN_DAYS_BACK` | `30` | Days of sleep/steps history to sync |
 | `SUMMARY_WINDOW_MONTHS` | `2` | How many recent months the Activity Summary recomputes (set `9999` for a full rebuild) |
 
-### Step 6: Run!
+### Step 6: Run
 
 Go to the **Actions** tab → **Garmin to Notion Sync** → **Run workflow**.
 
@@ -235,30 +243,39 @@ cleanup_duplicates.py  # Deduplicate Workouts DB
 ## Troubleshooting
 
 ### Charts show errors
+
 Run the Notion AI update prompt ([`docs/notion-ai-update-prompt.txt`](docs/notion-ai-update-prompt.txt)) to recreate all views and charts. Make sure your databases have data first — charts won't render on empty databases.
 
 ### Wrong activity times
+
 Set the `TIMEZONE` variable to your IANA timezone (e.g. `America/New_York`). If you already have activities with wrong times, re-run `python -m garmin_to_notion activities` — it will detect and fix timezone mismatches automatically.
 
 ### Calendar views show empty months
+
 Notion calendar views require a Date property. If a month appears empty, check that the sync has run and populated data for that period. For sleep and steps, increase `GARMIN_DAYS_BACK` to backfill older data.
 
 ### Activity Summary shows zero steps or sleep
+
 Activity Summary aggregates from Workouts, Daily Steps, and Sleep databases. Make sure all three syncs have run at least once. Run `python -m garmin_to_notion all` to sync everything, then `python -m garmin_to_notion summary` to regenerate summaries.
 
 ### Activity Summary missing old months after backfilling activities
+
 By default the summary sync only recomputes the last 2 months plus the current year. If you backfilled older activities, force a one-time full rebuild by setting `SUMMARY_WINDOW_MONTHS=9999` (as a repo Variable or local env var) and running the sync. Set it back to `2` afterward.
 
 ### Sleep sync is slow on first run
+
 The first sync fetches `GARMIN_DAYS_BACK` days of sleep data (default 30). For large backfills (e.g. `GARMIN_DAYS_BACK=3650`), the first run calls the Garmin API for each day without existing data. Subsequent syncs skip existing dates and are near-instant.
 
 ### Stress data shows NULL
+
 The Garmin API key for daily stress is `avgStressLevel`, **not** `overallStressLevel` (which returns NULL). This is already fixed in this fork.
 
 ### Auto-discovery can't find databases
+
 Make sure the Notion integration is connected to the **Fitness Tracker** page (not individual databases). Database names must match exactly: **Activities**, **Personal Records**, **Daily Steps**, **Sleep**, **Fitness Summary**, **Workouts**, **Activity Summary**.
 
 ### Rate limiting (HTTP 429)
+
 If you hit Garmin's rate limit, stop all sync attempts and wait 2–3 hours before retrying.
 
 ## Acknowledgements
@@ -266,9 +283,50 @@ If you hit Garmin's rate limit, stop all sync attempts and wait 2–3 hours befo
 This project builds on the work of [Chloe Voyer](https://github.com/chloevoyer/garmin-to-notion), who created the original Garmin-to-Notion sync, and the extended version by [FlyLabs](https://github.com/fly-labs/garmin-to-notion). This fork adds Fitness Summary tracking, enhanced sleep metrics (HRV, stress, SpO2), VO2 Max tracking, a computed sleep score, and a full Notion dashboard with 18+ chart views.
 
 Other projects that inspired this work:
+
 - [python-garminconnect](https://github.com/cyberjunky/python-garminconnect) — Garmin API wrapper
 - [n-kratz/garmin-notion](https://github.com/n-kratz/garmin-notion) — alternative Garmin-Notion integration
 
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## Troubleshooting: "Could not find databases" despite a correct token
+
+Symptom: the sync logs
+
+    Could not find databases: Activities, Personal Records, Daily Steps, Sleep, Workouts, ActivitySummary
+
+even though the Notion integration is connected to the Fitness Tracker page and `NOTION_TOKEN` in `.env` is correct.
+
+Cause: `python-dotenv` does NOT override variables already present in the environment (`load_dotenv(override=False)` is the default). A stale `NOTION_TOKEN` set at the Windows **User** or **Machine** scope (or exported in a shell profile on macOS/Linux) wins over `.env`. If that token belongs to a different/old integration, the discovery search 401s.
+
+Diagnose (PowerShell):
+
+    "session: $env:NOTION_TOKEN"
+    "user:    " + [Environment]::GetEnvironmentVariable("NOTION_TOKEN","User")
+    "machine: " + [Environment]::GetEnvironmentVariable("NOTION_TOKEN","Machine")
+
+If any print a token that is not the one in `.env`, clear it:
+
+    # session
+    Remove-Item Env:\NOTION_TOKEN -ErrorAction SilentlyContinue
+    # user scope (no admin needed)
+    [Environment]::SetEnvironmentVariable("NOTION_TOKEN", $null, "User")
+    # machine scope (run PowerShell as Administrator)
+    [Environment]::SetEnvironmentVariable("NOTION_TOKEN", $null, "Machine")
+
+macOS / Linux:
+
+    unset NOTION_TOKEN          # session
+    # then remove any `export NOTION_TOKEN=...` line from ~/.zshrc or ~/.bash_profile
+
+Open a fresh terminal and re-run. Alternatively, change `load_dotenv()` to `load_dotenv(override=True)` in the code so `.env` always wins.
+
+Check a token directly against the Notion API (PowerShell):
+
+    $token = "ntn_xxx"
+    $headers = @{ Authorization = "Bearer $token"; "Notion-Version" = "2022-06-28" }
+    (Invoke-RestMethod -Uri "https://api.notion.com/v1/users/me" -Headers $headers).bot
+    $body = '{"filter":{"property":"object","value":"database"}}'
+    (Invoke-RestMethod -Method Post -Uri "https://api.notion.com/v1/search" -Headers $headers -Body $body -ContentType "application/json").results | ForEach-Object { $_.title.plain_text }
