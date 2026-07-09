@@ -71,11 +71,11 @@ jobs:
       - name: Check data freshness
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        run: python scripts/check_freshness.py
+        run: python -m check_freshness
 
       - name: Save Garmin tokens
         if: always()
         uses: actions/cache/save@v4
         with:
           path: ~/.garmin_tokens
-          key: garmin-tokens-v1-$[[ github.run_id ]]
+          key: garmin-tokens-v1-${{ github.run_id }}
