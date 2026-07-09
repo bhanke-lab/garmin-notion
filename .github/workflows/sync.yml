@@ -68,9 +68,14 @@ jobs:
           PYTHONPATH: src
         run: python -m garmin_to_notion all -v
 
+      - name: Check data freshness
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python scripts/check_freshness.py
+
       - name: Save Garmin tokens
         if: always()
         uses: actions/cache/save@v4
         with:
           path: ~/.garmin_tokens
-          key: garmin-tokens-v1-$444
+          key: garmin-tokens-v1-$[[ github.run_id ]]
