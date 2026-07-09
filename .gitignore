@@ -46,3 +46,6 @@ img/
 
 # P list
 scripts/com.bhanke.garmin-notion.plist
+
+# Sync log
+sync_log.txt
