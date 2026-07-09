@@ -43,3 +43,6 @@ img/
 
 # Settings
 .vscode/
+
+# P list
+scripts/com.bhanke.garmin-notion.plist

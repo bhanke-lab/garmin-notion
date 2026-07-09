@@ -36,6 +36,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Restore Garmin tokens
+        if: vars.SYNC_RUNNER != 'local'
         uses: actions/cache/restore@v4
         id: garmin-tokens
         with:
@@ -50,13 +51,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Add jitter
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' && vars.SYNC_RUNNER != 'local'
         run: |
           JITTER=$((RANDOM % 600))
           echo "Sleeping ${JITTER}s before hitting Garmin."
           sleep $JITTER
 
       - name: Run sync
+        if: vars.SYNC_RUNNER != 'local'
         env:
           GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
           GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
@@ -74,7 +76,7 @@ jobs:
         run: python scripts/check_freshness.py
 
       - name: Save Garmin tokens
-        if: always()
+        if: always() && vars.SYNC_RUNNER != 'local'
         uses: actions/cache/save@v4
         with:
           path: ~/.garmin_tokens
