@@ -71,7 +71,7 @@ jobs:
       - name: Check data freshness
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        run: python -m check_freshness
+        run: python scripts/check_freshness.py
 
       - name: Save Garmin tokens
         if: always()
