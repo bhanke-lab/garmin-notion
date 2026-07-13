@@ -188,9 +188,14 @@ def _activity_needs_update(
             or props["Max HR"]["number"]
             != round(new_activity.get("maxHR", 0) or 0)
         )
+        name_changed = (
+        props["Name"]["title"][0]["text"]["content"]
+        != new_activity.get("activityName", "Unnamed Activity")
+        )
+        vo2_changed = props["VO2 Max"]["number"] != new_activity.get("vO2MaxValue")
         return (
             date_changed or distance_changed or calories_changed
-            or pace_changed or hr_changed
+            or pace_changed or hr_changed or name_changed or vo2_changed
         )
     except (KeyError, TypeError, IndexError):
         return True
@@ -252,8 +257,14 @@ def sync_activities(
 
     created, updated, skipped = 0, 0, 0
 
+    recent_cutoff = datetime.now(settings.timezone).date() - timedelta(
+    days=settings.days_back
+)
+
     for activity in activities:
-        if activity.get("activityId") in existing_ids:
+        garmin_id = activity.get("activityId")
+        activity_date = gmt_to_local(activity.get("startTimeGMT"), settings.timezone)
+        if garmin_id in existing_ids and activity_date.date() < recent_cutoff:
             skipped += 1
             continue
         time.sleep(1.0)
@@ -269,8 +280,6 @@ def sync_activities(
             activity.get("activityType", {}).get("typeKey", "Unknown"),
             activity_name,
         )
-        activity_date = gmt_to_local(activity.get("startTimeGMT"), settings.timezone)
-        garmin_id = activity.get("activityId")
 
         existing = _activity_exists(
             notion, settings.activities_db_id,

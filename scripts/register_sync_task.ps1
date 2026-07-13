@@ -8,7 +8,7 @@
 $scriptPath = Join-Path $PSScriptRoot "run_sync.ps1"
 
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`""
 
 $morning = New-ScheduledTaskTrigger -Daily -At 7:05AM
 $evening = New-ScheduledTaskTrigger -Daily -At 8:05PM
