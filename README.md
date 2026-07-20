@@ -6,7 +6,7 @@ Sync your Garmin fitness data to Notion databases. Runs twice a day, on GitHub A
 
 ![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Sync: GitHub Actions](https://img.shields.io/badge/sync-GitHub%20Actions-purple)
+![Sync Status](https://github.com/bhanke-lab/garmin-notion/actions/workflows/sync.yml/badge.svg)
 
 ## Fork Enhancements
 
