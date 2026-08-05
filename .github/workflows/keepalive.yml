@@ -3,10 +3,18 @@ name: Keep Alive
 on:
   schedule:
     - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
 
 jobs:
   keepalive:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v2
+      - name: Re-enable scheduled workflows
+        run: |
+          gh api -X PUT repos/${{ github.repository }}/actions/workflows/sync.yml/enable
+          gh api -X PUT repos/${{ github.repository }}/actions/workflows/keepalive.yml/enable
+        env:
+          GH_TOKEN: ${{ github.token }}
